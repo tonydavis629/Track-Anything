@@ -61,7 +61,7 @@ class TrackingAnything():
         
 def parse_augment():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--device', type=str, default="cuda:0")
+    parser.add_argument('--device', type=str, default="cuda")
     parser.add_argument('--sam_model_type', type=str, default="vit_h")
     parser.add_argument('--port', type=int, default=6080, help="only useful when running gradio applications")  
     parser.add_argument('--debug', action="store_true")

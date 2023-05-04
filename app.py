@@ -113,8 +113,8 @@ def get_frames_from_video(video_input, video_state):
         "fps": fps
         }
     video_info = "Video Name: {}, FPS: {}, Total Frames: {}, Image Size:{}".format(video_state["video_name"], video_state["fps"], len(frames), image_size)
-    model.samcontroler.sam_controler.reset_image()
-    model.samcontroler.sam_controler.set_image(video_state["origin_images"][0])
+    model.module.samcontroler.sam_controler.reset_image()
+    model.module.samcontroler.sam_controler.set_image(video_state["origin_images"][0])
     return video_state, video_info, video_state["origin_images"][0], gr.update(visible=True, maximum=len(frames), value=1), gr.update(visible=True, maximum=len(frames), value=len(frames)), \
                         gr.update(visible=True),\
                         gr.update(visible=True), gr.update(visible=True), \
@@ -134,8 +134,8 @@ def select_template(image_selection_slider, video_state, interactive_state):
 
     # once select a new template frame, set the image in sam
 
-    model.samcontroler.sam_controler.reset_image()
-    model.samcontroler.sam_controler.set_image(video_state["origin_images"][image_selection_slider])
+    model.module.samcontroler.sam_controler.reset_image()
+    model.module.samcontroler.sam_controler.set_image(video_state["origin_images"][image_selection_slider])
 
     # update the masks when select a new template frame
     # if video_state["masks"][image_selection_slider] is not None:
@@ -172,11 +172,11 @@ def sam_refine(video_state, point_prompt, click_state, interactive_state, evt:gr
         interactive_state["negative_click_times"] += 1
 
     # prompt for sam model
-    model.samcontroler.sam_controler.reset_image()
-    model.samcontroler.sam_controler.set_image(video_state["origin_images"][video_state["select_frame_number"]])
+    model.module.samcontroler.sam_controler.reset_image()
+    model.module.samcontroler.sam_controler.set_image(video_state["origin_images"][video_state["select_frame_number"]])
     prompt = get_prompt(click_state=click_state, click_input=coordinate)
 
-    mask, logit, painted_image = model.first_frame_click(
+    mask, logit, painted_image = model.module.first_frame_click(
                                                       image=video_state["origin_images"][video_state["select_frame_number"]],
                                                       points=np.array(prompt["input_point"]),
                                                       labels=np.array(prompt["input_label"]),
@@ -230,7 +230,7 @@ def show_mask(video_state, interactive_state, mask_dropdown):
 # tracking vos
 def vos_tracking_video(video_state, interactive_state, mask_dropdown):
     operation_log = [("",""), ("Track the selected masks, and then you can select the masks for inpainting.","Normal")]
-    model.xmem.clear_memory()
+    model.module.xmem.clear_memory()
     if interactive_state["track_end_number"]:
         following_frames = video_state["origin_images"][video_state["select_frame_number"]:interactive_state["track_end_number"]]
     else:
@@ -254,9 +254,9 @@ def vos_tracking_video(video_state, interactive_state, mask_dropdown):
         template_mask[0][0]=1
         operation_log = [("Error! Please add at least one mask to track by clicking the left image.","Error"), ("","")]
         # return video_output, video_state, interactive_state, operation_error
-    masks, logits, painted_images = model.generator(images=following_frames, template_mask=template_mask)
+    masks, logits, painted_images = model.module.generator(images=following_frames, template_mask=template_mask)
     # clear GPU memory
-    model.xmem.clear_memory()
+    model.module.xmem.clear_memory()
 
     if interactive_state["track_end_number"]:
         video_state["masks"][video_state["select_frame_number"]:interactive_state["track_end_number"]] = masks
@@ -316,7 +316,7 @@ def inpaint_video(video_state, interactive_state, mask_dropdown):
     # inpaint for videos
 
     try:
-        inpainted_frames = model.baseinpainter.inpaint(frames, inpaint_masks, ratio=interactive_state["resize_ratio"])   # numpy array, T, H, W, 3
+        inpainted_frames = model.module.baseinpainter.inpaint(frames, inpaint_masks, ratio=interactive_state["resize_ratio"])   # numpy array, T, H, W, 3
     except:
         operation_log = [("Error! You are trying to inpaint without masks input. Please track the selected mask first, and then press inpaint. If VRAM exceeded, please use the resize ratio to scaling down the image size.","Error"), ("","")]
         inpainted_frames = video_state["origin_images"]

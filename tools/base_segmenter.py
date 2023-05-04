@@ -11,7 +11,7 @@ from .mask_painter import mask_painter
 
 
 class BaseSegmenter:
-    def __init__(self, SAM_checkpoint, model_type, device='cuda:0'):
+    def __init__(self, SAM_checkpoint, model_type, device='cuda'):
         """
         device: model device
         SAM_checkpoint: path of SAM checkpoint
